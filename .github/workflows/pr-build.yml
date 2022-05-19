@@ -145,12 +145,10 @@ jobs:
           message-color: '15258703'
 
       - name: Install python dependencies
-        working-directory: deployment
         run: pip install cfn-lint
 
       - name: Lint cloudformation template
-        working-directory: deployment
-        run: cfn-lint deployment.yaml
+        run: cfn-lint ./deployment/deployment.yaml
 
       - name: Build Failed Discord Webhook
         uses: Poss111/discord-hook-action@v1.6.8
