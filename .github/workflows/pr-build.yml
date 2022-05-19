@@ -148,7 +148,7 @@ jobs:
         run: pip install cfn-lint
 
       - name: Lint cloudformation template
-        run: cfn-lint ./deployment/deployment.yaml
+        run: cfn-lint deployment/deployment.yaml
 
       - name: Build Failed Discord Webhook
         uses: Poss111/discord-hook-action@v1.6.8
