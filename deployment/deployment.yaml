@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: A template for deploying out lambda and Cloudwatch Events
+Parameters:
+  Image:
+    Description: Image
+    Type: String
+    Default: N/A
+  Role:
+    Description: The aws role to execute the lambda run with.
+    Type: String
+  LambdaSecurityGroup:
+    Description: The aws security group to run with.
+    Type: String
+    Default: N/A
+  LambdaSubnet:
+    Description: The aws subnet to run with.
+    Type: String
+    Default: N/A
+  Timeout:
+    Description: The timeout for the Lambda.
+    Type: Number
+    Default: "15"
+Resources:
+  ClashBotLoggingLambda:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      FunctionName: ClashBotLoggingLambda
+      Role: !Ref Role
+      PackageType: Image
+      Code:
+        ImageUri: !Ref Image
+      Timeout: !Ref Timeout
+      TracingConfig:
+        Mode: Active
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref LambdaSecurityGroup
+        SubnetIds:
+          - !Ref LambdaSubnet
+
+Outputs:
+  LambdaARN:
+    Value: !GetAtt
+      - ClashBotLoggingLambda
+      - Arn
+    Description: The ARN for the Lambda created.

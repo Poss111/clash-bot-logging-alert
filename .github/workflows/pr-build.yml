@@ -1,0 +1,175 @@
+name: Build Lambda Code - Verify PR
+
+on:
+  pull_request:
+    branches: [ master ]
+    paths-ignore:
+      - '**/README.md'
+      - '**/.gitignore'
+
+jobs:
+
+  build-lambda:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: FranzDiebold/github-env-vars-action@v2.1.0
+
+      - name: Build Start Discord Webhook
+        uses: Poss111/discord-hook-action@v1.6.8
+        with:
+          discord-hook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: 'Clash Bot Build Notification - Lambda'
+          message: 'Starting Github build...'
+          message-color: '15258703'
+
+      - uses: actions/checkout@v2
+
+      - name: Install Dependencies
+        working-directory: ./lambda
+        run: npm i
+
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - name: Build typescript
+        working-directory: ./lambda
+        run: npx tsc
+
+      - name: Build and push Docker Image
+        working-directory: ./lambda
+        run: docker build -t poss11111/clash-bot-logging-lambda:test .
+
+      - name: Build Failed Discord Webhook
+        uses: Poss111/discord-hook-action@v1.6.8
+        if: ${{ failure() }}
+        with:
+          discord-hook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: 'Clash Bot Build Notification - Lambda'
+          message: 'Github build failed!'
+          message-color: '16711680'
+
+      - name: Build Succeeded Discord Webhook
+        uses: Poss111/discord-hook-action@v1.6.8
+        if: ${{ success() }}
+        with:
+          discord-hook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: 'Clash Bot Build Notification - Lambda'
+          message: 'Github build succeeded!'
+          message-color: '65345'
+
+  test:
+    needs: build-lambda
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: FranzDiebold/github-env-vars-action@v2.1.0
+
+      - name: Build Start Discord Webhook
+        uses: Poss111/discord-hook-action@v1.6.8
+        with:
+          discord-hook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: 'Clash Bot Build Notification - Lambda'
+          message: 'Starting Github test...'
+          message-color: '15258703'
+
+      - name: Check
+        run : echo build $GITHUB_RUN_NUMBER
+
+      - uses: actions/checkout@v2
+
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - name: Install Dependencies
+        working-directory: ./lambda
+        run: npm i
+
+      - name: Run unit tests
+        working-directory: ./lambda
+        run: npm test
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: coverage-artifact
+          path: lambda/coverage
+
+      - name: Build Failed Discord Webhook
+        uses: Poss111/discord-hook-action@v1.6.8
+        if: ${{ failure() }}
+        with:
+          discord-hook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: 'Clash Bot Build Notification - Lambda'
+          message: 'Github test failed!'
+          message-color: '16711680'
+
+      - name: Build Succeeded Discord Webhook
+        uses: Poss111/discord-hook-action@v1.6.8
+        if: ${{ success() }}
+        with:
+          discord-hook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: 'Clash Bot Build Notification - Lambda'
+          message: 'Github test succeeded!'
+          message-color: '65345'
+
+  cloudformation-lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: FranzDiebold/github-env-vars-action@v2.1.0
+
+      - name: Build Start Discord Webhook
+        uses: Poss111/discord-hook-action@v1.6.8
+        with:
+          discord-hook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: 'Clash Bot Build Notification - Lambda'
+          message: 'Starting Github cloudformation linting...'
+          message-color: '15258703'
+
+      - uses: actions/checkout@v2
+
+      - name: Setup Cloud Formation Linter with Latest Version
+        uses: scottbrenner/cfn-lint-action@v2
+
+      - name: Print the Cloud Formation Linter Version & run Linter.
+        run: |
+          cfn-lint --version
+          cfn-lint -t ./deployment/*.yaml
+
+      - name: Build Failed Discord Webhook
+        uses: Poss111/discord-hook-action@v1.6.8
+        if: ${{ failure() }}
+        with:
+          discord-hook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: 'Clash Bot Build Notification - Lambda'
+          message: 'Github cloudformation linting failed!'
+          message-color: '16711680'
+
+      - name: Build Succeeded Discord Webhook
+        uses: Poss111/discord-hook-action@v1.6.8
+        if: ${{ success() }}
+        with:
+          discord-hook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: 'Clash Bot Build Notification - Lambda'
+          message: 'Github cloudformation linting succeeded!'
+          message-color: '65345'
+
+

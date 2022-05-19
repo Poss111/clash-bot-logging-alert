@@ -1,0 +1,135 @@
+name: Deploy IaC and Code
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  deploy-lambda-image:
+    runs-on: ubuntu-latest
+
+    outputs:
+      docker-image: ${{ steps.build-image.outputs.image }}
+
+    steps:
+      - uses: FranzDiebold/github-env-vars-action@v2.1.0
+
+      - name: Build Start Discord Webhook
+        uses: Poss111/discord-hook-action@v1.6.8
+        with:
+          discord-hook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: 'Clash Bot Deployment Notification - Lambda'
+          message: 'Starting Github build...'
+          message-color: '15258703'
+
+      - uses: actions/checkout@v2
+
+      - name: Install Dependencies
+        working-directory: ./lambda
+        run: npm i
+
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - name: Build typescript
+        working-directory: ./lambda
+        run: npx tsc
+
+      - name: Build and push Docker Image
+        working-directory: ./lambda
+        run: docker build -t poss11111/clash-bot-logging-lambda:test .
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_SECRET_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: us-east-1
+
+      - name: Login to ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build Docker Image Start Discord Webhook
+        uses: Poss111/discord-hook-action@v1.6.8
+        with:
+          discord-hook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: 'Clash Bot Logging Lambda Deployment Notification'
+          message: 'Starting Docker Image build...'
+          message-color: '15258703'
+
+      - name: Build, tag, and push Clash-Bot Logging Lambda image to Amazon ECR
+        id: build-image
+        working-directory: ./lambda
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: poss11111/clash-bot-logging-lambda
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+      - name: Deployment Failed Discord Webhook
+        uses: Poss111/discord-hook-action@v1.6.8
+        if: ${{ failure() }}
+        with:
+          discord-hook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: 'Clash Bot Logging Lambda Deployment Notification'
+          message: 'Deployment failed!'
+          message-color: '16711680'
+
+      - name: Deployment Succeeded Discord Webhook
+        uses: Poss111/discord-hook-action@v1.6.8
+        if: ${{ success() }}
+        with:
+          discord-hook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: 'Clash Bot Logging Lambda Deployment Notification'
+          message: 'Deployment succeeded!'
+          message-color: '65345'
+
+  deploy-IaC:
+    needs: deploy-lambda-image
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: FranzDiebold/github-env-vars-action@v2.1.0
+
+      - name: Build Start Discord Webhook
+        uses: Poss111/discord-hook-action@v1.6.8
+        with:
+          discord-hook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: 'Clash Bot Deployment Notification - Lambda'
+          message: 'Starting Github build...'
+          message-color: '15258703'
+
+      - name: Deployment In Progress Discord Webhook
+        uses: Poss111/discord-hook-action@v1.6.8
+        if: ${{ success()}}
+        with:
+          discord-hook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: 'Clash Bot Logging Lambda Deployment Notification'
+          message: 'Deployment in progress...'
+          message-color: '16750902'
+
+      - name: Deploy to AWS CloudFormation
+        uses: aws-actions/aws-cloudformation-github-deploy@v1.0.3
+        with:
+          name: ClashBotLoggingLambdaStack
+          template: deployment/deployment.yaml
+          parameter-overrides: >-
+            Image=${{ needs.deploy-lambda-image.outputs.docker-image }},
+            Role=${{ secrets.AWS_LAMBDA_ROLE }},
+            Timeout=30,
+            LambdaSecurityGroup=${{ secrets.AWS_SG }},
+            LambdaSubnet=${{ secrets.AWS_SUBNET }}
