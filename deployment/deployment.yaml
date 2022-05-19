@@ -30,9 +30,6 @@ Resources:
       PackageType: Image
       Code:
         ImageUri: !Ref Image
-      Environment:
-        Variables:
-          snsTopicArn: !Ref ClashBotLoggingLambdaTopic
       Timeout: !Ref Timeout
       TracingConfig:
         Mode: Active
