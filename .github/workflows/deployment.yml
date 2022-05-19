@@ -1,0 +1,36 @@
+name: Deploy IaC and Code
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  deploy-lambda:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: FranzDiebold/github-env-vars-action@v2.1.0
+
+      - name: Build Start Discord Webhook
+        uses: Poss111/discord-hook-action@v1.6.8
+        with:
+          discord-hook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: 'Clash Bot Deployment Notification - Lambda'
+          message: 'Starting Github build...'
+          message-color: '15258703'
+
+  deploy-IaC:
+    needs: deploy-lambda
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: FranzDiebold/github-env-vars-action@v2.1.0
+
+      - name: Build Start Discord Webhook
+        uses: Poss111/discord-hook-action@v1.6.8
+        with:
+          discord-hook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: 'Clash Bot Deployment Notification - Lambda'
+          message: 'Starting Github build...'
+          message-color: '15258703'
