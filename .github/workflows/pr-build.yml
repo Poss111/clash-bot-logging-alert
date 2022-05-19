@@ -23,6 +23,8 @@ jobs:
           message: 'Starting Github build...'
           message-color: '15258703'
 
+      - uses: actions/checkout@v2
+
       - name: Install Dependencies
         working-directory: ./lambda
         run: npm i
