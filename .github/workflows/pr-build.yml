@@ -144,6 +144,8 @@ jobs:
           message: 'Starting Github cloudformation linting...'
           message-color: '15258703'
 
+      - uses: actions/checkout@v2
+
       - name: Install python dependencies
         run: pip install cfn-lint
 
