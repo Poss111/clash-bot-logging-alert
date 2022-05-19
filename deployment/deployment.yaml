@@ -8,7 +8,6 @@ Parameters:
   Role:
     Description: The aws role to execute the lambda run with.
     Type: String
-    Default: N/A
   LambdaSecurityGroup:
     Description: The aws security group to run with.
     Type: String
