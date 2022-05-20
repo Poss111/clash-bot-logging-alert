@@ -115,7 +115,7 @@ jobs:
         with:
           discord-hook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
           title: 'Clash Bot Logging Lambda Deployment Notification'
-          message: 'Deployment in progress...'
+          message: 'IAC Deployment in progress...'
           message-color: '16750902'
 
       - name: Configure AWS credentials
