@@ -20,6 +20,9 @@ Parameters:
     Description: The timeout for the Lambda.
     Type: Number
     Default: "15"
+  ClashBotServiceLogGroup:
+    Description: The log group for Clash Bot Service.
+    Type: String
 Resources:
   ClashBotLoggingLambda:
     Type: 'AWS::Lambda::Function'
@@ -37,6 +40,17 @@ Resources:
           - !Ref LambdaSecurityGroup
         SubnetIds:
           - !Ref LambdaSubnet
+
+  ErrorSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      RoleArn: !Ref Role
+      LogGroupName: !Ref ClashBotServiceLogGroup
+      FilterPattern: "{$.level = 50}"
+      DestinationArn:
+        Fn::GetAtt:
+          - ClashBotLoggingLambda
+          - "Arn"
 
 Outputs:
   LambdaARN:

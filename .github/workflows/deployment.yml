@@ -45,10 +45,6 @@ jobs:
         working-directory: ./lambda
         run: npx tsc
 
-      - name: Build and push Docker Image
-        working-directory: ./lambda
-        run: docker build -t poss11111/clash-bot-logging-lambda:test .
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -86,7 +82,7 @@ jobs:
         with:
           discord-hook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
           title: 'Clash Bot Logging Lambda Deployment Notification'
-          message: 'Deployment failed!'
+          message: 'Publishing failed!'
           message-color: '16711680'
 
       - name: Deployment Succeeded Discord Webhook
@@ -95,7 +91,7 @@ jobs:
         with:
           discord-hook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
           title: 'Clash Bot Logging Lambda Deployment Notification'
-          message: 'Deployment succeeded!'
+          message: 'Publishing succeeded!'
           message-color: '65345'
 
   deploy-IaC:
@@ -132,4 +128,5 @@ jobs:
             Role=${{ secrets.AWS_LAMBDA_ROLE }},
             Timeout=30,
             LambdaSecurityGroup=${{ secrets.AWS_SG }},
-            LambdaSubnet=${{ secrets.AWS_SUBNET }}
+            LambdaSubnet=${{ secrets.AWS_SUBNET }},
+            ClashBotServiceLogGroup=${{ secrets.CLASH_BOT_SERVICE_LOG_GROUP }}
