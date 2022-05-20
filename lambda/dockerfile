@@ -1,4 +1,5 @@
 FROM amazon/aws-lambda-nodejs:16
 ADD built  package*.json ./
 RUN npm install --omit=dev
+RUN rm -rf package.json pakage-lock.json
 CMD ["index.handler"]
