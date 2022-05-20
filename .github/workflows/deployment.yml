@@ -111,7 +111,7 @@ jobs:
             Timeout=30,
             LambdaSecurityGroup=${{ secrets.AWS_SG }},
             LambdaSubnet=${{ secrets.AWS_SUBNET }},
-            ClashBotServiceLogGroup=${{ secrets.CLASH_BOT_SERVICE_LOG_GROUP }}
+            ClashBotServiceLogGroup=${{ secrets.CLASH_BOT_SERVICE_LOG_GROUP }},
             DiscordErrorWebhookUrl=${{ secrets.DISCORD_ERROR_WEBHOOK_URL }}
 
       - name: Deployment In Progress Discord Webhook
