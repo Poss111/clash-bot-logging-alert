@@ -118,6 +118,8 @@ jobs:
           message: 'Deployment in progress...'
           message-color: '16750902'
 
+      - uses: actions/checkout@v2
+
       - name: Deploy to AWS CloudFormation
         uses: aws-actions/aws-cloudformation-github-deploy@v1.0.3
         with:
@@ -130,3 +132,21 @@ jobs:
             LambdaSecurityGroup=${{ secrets.AWS_SG }},
             LambdaSubnet=${{ secrets.AWS_SUBNET }},
             ClashBotServiceLogGroup=${{ secrets.CLASH_BOT_SERVICE_LOG_GROUP }}
+
+      - name: Deployment In Progress Discord Webhook
+        uses: Poss111/discord-hook-action@v1.6.8
+        if: ${{ failure() }}
+        with:
+          discord-hook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: 'Clash Bot Logging Lambda Deployment Notification'
+          message: 'IAC Deployment Successful!'
+          message-color: '16711680'
+
+      - name: Deployment In Progress Discord Webhook
+        uses: Poss111/discord-hook-action@v1.6.8
+        if: ${{ success()}}
+        with:
+          discord-hook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: 'Clash Bot Logging Lambda Deployment Notification'
+          message: 'IAC Deployment Successful!'
+          message-color: '16750902'
