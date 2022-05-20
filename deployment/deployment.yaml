@@ -44,7 +44,6 @@ Resources:
   ErrorSubscriptionFilter:
     Type: AWS::Logs::SubscriptionFilter
     Properties:
-      RoleArn: !Ref Role
       LogGroupName: !Ref ClashBotServiceLogGroup
       FilterPattern: "{$.level = 50}"
       DestinationArn:
