@@ -24,7 +24,7 @@ jobs:
 
       - name: Install Prod Dependencies
         working-directory: ./lambda
-        run: npm install
+        run: npm i --omit=dev
 
       - name: Cache node modules
         uses: actions/cache@v2
@@ -40,7 +40,7 @@ jobs:
 
       - name: Build typescript
         working-directory: ./lambda
-        run: npx tsc
+        run: npm run build
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
