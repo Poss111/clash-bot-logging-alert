@@ -24,7 +24,7 @@ jobs:
 
       - name: Install Prod Dependencies
         working-directory: ./lambda
-        run: npm install --production
+        run: npm install
 
       - name: Cache node modules
         uses: actions/cache@v2
