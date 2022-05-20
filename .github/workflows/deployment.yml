@@ -22,9 +22,9 @@ jobs:
 
       - uses: actions/checkout@v2
 
-      - name: Install Dependencies
+      - name: Install Prod Dependencies
         working-directory: ./lambda
-        run: npm i
+        run: npm install --production
 
       - name: Cache node modules
         uses: actions/cache@v2
@@ -112,6 +112,7 @@ jobs:
             LambdaSecurityGroup=${{ secrets.AWS_SG }},
             LambdaSubnet=${{ secrets.AWS_SUBNET }},
             ClashBotServiceLogGroup=${{ secrets.CLASH_BOT_SERVICE_LOG_GROUP }}
+            DiscordErrorWebhookUrl=${{ secrets.DISCORD_ERROR_WEBHOOK_URL }}
 
       - name: Deployment In Progress Discord Webhook
         uses: Poss111/discord-hook-action@v1.6.8
