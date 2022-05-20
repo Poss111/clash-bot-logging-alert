@@ -23,6 +23,9 @@ Parameters:
   ClashBotServiceLogGroup:
     Description: The log group for Clash Bot Service.
     Type: String
+  DiscordErrorWebhookUrl:
+    Description: The error webhook url to post messages to.
+    Type: String
 Resources:
   ClashBotLoggingLambda:
     Type: 'AWS::Lambda::Function'
@@ -35,6 +38,9 @@ Resources:
       Timeout: !Ref Timeout
       TracingConfig:
         Mode: Active
+      Environment:
+        Variables:
+          DISCORD_WEBHOOK_URL: !Ref DiscordErrorWebhookUrl
       VpcConfig:
         SecurityGroupIds:
           - !Ref LambdaSecurityGroup
