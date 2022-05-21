@@ -33,7 +33,7 @@ export function handler(event: CloudWatchLogsEvent, context?: APIGatewayEventReq
                 console.log("Payload:", JSON.stringify(discordWebhookPayload, null, 2));
                 axios({
                     method: "POST",
-                    url: "https://discord.com/api/webhooks/977029451474956379/moChs3neOgvdvneybMsMHFuHfSuO8GeauB6D6QFpM5VUumKsGvppF9zdIdZHARF4AV7p",
+                    url: process.env.DISCORD_WEBHOOK_URL,
                     data: discordWebhookPayload,
                     timeout: 10000
                 }).then((res) => {
