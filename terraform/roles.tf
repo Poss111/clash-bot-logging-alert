@@ -13,7 +13,7 @@ resource "aws_iam_policy" "cloudwatch_iam_policy" {
 }
 
 resource "aws_iam_policy" "network_iam_policy" {
-  name = "clash-bot-cloudwatch-lambda-policy"
+  name = "clash-bot-network-lambda-policy"
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
