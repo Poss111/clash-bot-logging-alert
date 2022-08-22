@@ -56,7 +56,7 @@ resource "aws_lambda_function_event_invoke_config" "clash_bot_func_event_config"
 }
 
 resource "aws_lambda_function" "clash_bot_notification_lambda" {
-  depends_on    = [aws_iam_role_policy_attachment.ecs-ecr-policy-attachment]
+  depends_on    = [aws_iam_role_policy_attachment.cloudwatch-policy-attachment, aws_iam_policy.network_iam_policy]
   function_name = "clash-bot-obs-function"
   role          = aws_iam_role.clash-bot-obs-lambda-role.arn
   image_uri     = var.image_id
