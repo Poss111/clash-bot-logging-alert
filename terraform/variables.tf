@@ -1,12 +1,12 @@
 variable "access_key" {
-  default = ""
-  type    = string
+  default   = ""
+  type      = string
   sensitive = true
 }
 
 variable "secret_key" {
-  default = ""
-  type    = string
+  default   = ""
+  type      = string
   sensitive = true
 }
 
@@ -26,18 +26,18 @@ variable "ecs_service_log_group_name" {
 }
 
 variable "image_id" {
-  default = ""
-  type    = string
+  default   = ""
+  type      = string
   sensitive = true
 }
 
 variable "webhook_url" {
-  default = ""
-  type    = string
+  default   = ""
+  type      = string
   sensitive = true
 }
 
 variable "lambda_port" {
-  default = ""
+  default   = ""
   sensitive = true
 }
