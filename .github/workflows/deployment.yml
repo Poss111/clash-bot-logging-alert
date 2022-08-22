@@ -6,8 +6,36 @@ on:
       - 'v*'
 
 jobs:
+  check-applications:
+    name: "Check Applications that needed to be deployed"
+    runs-on: ubuntu-latest
+
+    outputs:
+      deploy-lambda: ${{ steps.check-apps.outputs.lambdaUpdate }}
+      tag: ${{ steps.check-apps.outputs.parsedTag }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Run shell to check which App to deploy
+        id: check-apps
+        run: |
+          chmod 755 ./check_diff_between_tags.sh
+          ./check_diff_between_tags.sh
+
+      - name: Check Output for Lambda
+        run: echo ${{ steps.check-apps.outputs.lambdaUpdate }}
+
+      - name: Check Tag
+        run: echo ${{ steps.check-apps.outputs.parsedTag }}
+
   deploy-lambda-image:
     runs-on: ubuntu-latest
+    needs: check-applications
+    if: ${{ needs.check-applications.outputs.deploy-lambda == 'true'}}
 
     steps:
       - uses: FranzDiebold/github-env-vars-action@v2.1.0
@@ -20,7 +48,7 @@ jobs:
           message: 'Starting Github build...'
           message-color: '15258703'
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install Prod Dependencies
         working-directory: ./lambda
@@ -91,6 +119,48 @@ jobs:
           message: 'Publishing succeeded!'
           message-color: '65345'
 
+  deploy-terraform:
+    runs-on: ubuntu-latest
+    needs: deploy-lambda-image
+    if: ${{ always() }}
+    defaults:
+      run:
+        working-directory: terraform
+
+    steps:
+      - uses: FranzDiebold/github-env-vars-action@v2.1.0
+
+      - name: Build Start Discord Webhook
+        uses: Poss111/discord-hook-action@v1.6.8
+        with:
+          discord-hook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: 'Clash Bot Deployment Notification - Lambda'
+          message: 'Starting Github build...'
+          message-color: '15258703'
+
+      - uses: actions/checkout@v3
+
+      - name: Login to ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Pull latest clash bot service ecr image
+        id: get-latest
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          chmod 755 ./get_latest_image.sh
+          ./get_latest_image.sh 'poss11111/clash-bot-logging-lambda' 'LAMBDA_IMAGE_ID'
+
+      - name: Check image to be pushed
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          if ! [[ $LAMBDA_IMAGE_ID =~ ^$ECR_REGISTRY\/poss11111/clash-bot-logging-lambda:.+$ ]]; then
+            echo "Invalid Lambda Image Url"
+            exit 1
+          fi
+
       - name: Deployment In Progress Discord Webhook
         uses: Poss111/discord-hook-action@v1.6.8
         if: ${{ success()}}
@@ -100,27 +170,44 @@ jobs:
           message: 'IAC Deployment in progress...'
           message-color: '16750902'
 
-      - name: Deploy to AWS CloudFormation
-        uses: aws-actions/aws-cloudformation-github-deploy@v1.0.3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
         with:
-          name: ClashBotLoggingLambdaStack
-          template: deployment/deployment.yaml
-          parameter-overrides: >-
-            Image=${{ steps.build-image.outputs.image }},
-            Role=${{ secrets.AWS_LAMBDA_ROLE }},
-            Timeout=30,
-            LambdaSecurityGroup=${{ secrets.AWS_SG }},
-            LambdaSubnet=${{ secrets.AWS_SUBNET }},
-            ClashBotServiceLogGroup=${{ secrets.CLASH_BOT_SERVICE_LOG_GROUP }},
-            DiscordErrorWebhookUrl=${{ secrets.DISCORD_ERROR_WEBHOOK_URL }}
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Terraform Format
+        id: fmt
+        run: terraform fmt -check
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+
+      - name: Terraform Plan
+        id: plan
+        if: github.event_name == 'pull_request'
+        env:
+          TF_VAR_access_key: ${{ secrets.AWS_SECRET_ID }}
+          TF_VAR_secret_key: ${{ secrets.AWS_SECRET_KEY }}
+          TF_VAR_region: "us-east-1"
+          TF_VAR_release_version: ${{ needs.check-applications.outputs.tag }}
+          TF_VAR_ecs_service_log_group_name: "clash-bot-webapp-ecs-task-logs"
+          TF_VAR_image_id: ${{ env.LAMBDA_IMAGE_ID }}
+          TF_VAR_webhook_url: ${{ secrets.DISCORD_ERROR_WEBHOOK_URL }}
+          TF_VAR_lambda_port: ${{ secrets.LAMBDA_PORT }}
+        run: terraform apply -auto-approve -input=false
 
       - name: Deployment In Progress Discord Webhook
         uses: Poss111/discord-hook-action@v1.6.8
         if: ${{ failure() }}
         with:
           discord-hook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          title: 'Clash Bot Logging Lambda Deployment Notification'
-          message: 'IAC Deployment Successful!'
+          title: 'Clash Bot Infra Deployment Notification'
+          message: 'IAC Deployment Failed!'
           message-color: '16711680'
 
       - name: Deployment In Progress Discord Webhook
@@ -128,6 +215,6 @@ jobs:
         if: ${{ success()}}
         with:
           discord-hook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          title: 'Clash Bot Logging Lambda Deployment Notification'
+          title: 'Clash Bot Infra Deployment Notification'
           message: 'IAC Deployment Successful!'
           message-color: '16750902'
