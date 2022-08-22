@@ -194,9 +194,8 @@ jobs:
         run: terraform validate -no-color
 
       - name: Terraform Plan
-        id: plan
+        id: apply
         working-directory: terraform
-        if: github.event_name == 'pull_request'
         env:
           TF_VAR_access_key: ${{ secrets.AWS_SECRET_ID }}
           TF_VAR_secret_key: ${{ secrets.AWS_SECRET_KEY }}
