@@ -38,6 +38,19 @@ variable "webhook_url" {
 }
 
 variable "lambda_port" {
-  default   = ""
+  default   = "8080"
+  type      = string
+  sensitive = true
+}
+
+variable "network_iam_policies" {
+  default   = []
+  type      = list(string)
+  sensitive = true
+}
+
+variable "cloudwatch_iam_policies" {
+  default   = []
+  type      = list(string)
   sensitive = true
 }

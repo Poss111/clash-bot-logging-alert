@@ -205,6 +205,8 @@ jobs:
           TF_VAR_image_id: ${{ env.LAMBDA_IMAGE_ID }}
           TF_VAR_webhook_url: ${{ secrets.DISCORD_ERROR_WEBHOOK_URL }}
           TF_VAR_lambda_port: ${{ secrets.LAMBDA_PORT }}
+          TF_VAR_network_iam_policies: ${{ secrets.NETWORK_IAM_POLICIES }}
+          TF_VAR_cloudwatch_iam_policies: ${{ secrets.CLOUDWATCH_IAM_POLICIES }}
         run: terraform apply -auto-approve -input=false
 
       - name: Deployment In Progress Discord Webhook

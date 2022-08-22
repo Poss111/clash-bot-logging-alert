@@ -5,7 +5,21 @@ resource "aws_iam_policy" "cloudwatch_iam_policy" {
     Statement = [
       {
         Effect   = "Allow",
-        Action   = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"],
+        Action   = var.cloudwatch_iam_policies,
+        Resource = ["*"]
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy" "network_iam_policy" {
+  name = "clash-bot-cloudwatch-lambda-policy"
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect   = "Allow",
+        Action   = var.network_iam_policies,
         Resource = ["*"]
       }
     ]

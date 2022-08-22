@@ -51,6 +51,8 @@ jobs:
           TF_VAR_image_id: "pr-image-id"
           TF_VAR_webhook_url: ${{ secrets.DISCORD_ERROR_WEBHOOK_URL }}
           TF_VAR_lambda_port: ${{ secrets.LAMBDA_PORT }}
+          TF_VAR_network_iam_policies: ${{ secrets.NETWORK_IAM_POLICIES }}
+          TF_VAR_cloudwatch_iam_policies: ${{ secrets.CLOUDWATCH_IAM_POLICIES }}
         run: terraform plan -no-color -input=false
         continue-on-error: true
 
