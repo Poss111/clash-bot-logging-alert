@@ -53,3 +53,8 @@ resource "aws_iam_role_policy_attachment" "ecs-ecr-policy-attachment" {
   role       = aws_iam_role.clash-bot-obs-lambda-role.name
   policy_arn = aws_iam_policy.cloudwatch_iam_policy.arn
 }
+
+resource "aws_iam_role_policy_attachment" "ecs-ecr-policy-attachment" {
+  role       = aws_iam_role.clash-bot-obs-lambda-role.name
+  policy_arn = aws_iam_policy.network_iam_policy.arn
+}
