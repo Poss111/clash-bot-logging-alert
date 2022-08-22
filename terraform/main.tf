@@ -47,7 +47,7 @@ resource "aws_lambda_alias" "clash_bot_notification_lambda_alias" {
   name             = "Clash_Bot_Notification_Alias"
   description      = "A version of the Clash Bot Notification Lambda."
   function_name    = aws_lambda_function.clash_bot_notification_lambda.arn
-  function_version = "LATEST"
+  function_version = "$LATEST"
 }
 
 resource "aws_lambda_function_event_invoke_config" "clash_bot_func_event_config" {
