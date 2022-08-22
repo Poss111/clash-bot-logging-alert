@@ -38,8 +38,8 @@ variable "webhook_url" {
 }
 
 variable "lambda_port" {
-  default   = ""
-  type      = number
+  default   = "8080"
+  type      = string
   sensitive = true
 }
 
