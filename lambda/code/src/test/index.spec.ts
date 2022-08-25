@@ -1,7 +1,7 @@
-import {handler} from "../index";
+import {buildAndSendDiscordPayload, handler} from "../index";
 import {CloudWatchLogsEvent} from "aws-lambda/trigger/cloudwatch-logs";
 import {DiscordWebhookPayload} from "../interface/DiscordWebhookPayload";
-import {buildPayload} from "../template-builder";
+import {buildRequestErrorPayload} from "../template-builder";
 import axios from "axios";
 
 jest.mock("axios");
@@ -18,7 +18,7 @@ describe('Lambda Handler', () => {
                 data: "H4sIAAAAAAAAAG1T21LkNhD9FZdfFjYj27J8HYqHyYawyUJlw5DKbbYoWW6PVdiSkTXDLBT/nrYMFcLGL5a6T58+6suj38M48i1cfx3AX/o/rK5XN5dn6/Xq/Mxf+PpegUFzQbMyZkWcJ3GJ5k5vz43eDegJQYyh6PjYkkpbMoLZSwEzZm0N8B5B/4sJcxaJIq7qmDYigQrKghdFBUkNlKWQ5kgy7qpRGDlYqdWPsrNgRn/5t/9h4vpe2wu93Uq1veB9VfO15eKWnBmjzfqbMEKL1Z8ff/35r/XVVRn7X5y+sz0oOxE++rJGmSwrMsbSPMuLJKEsokWUZ0VJkzJOaU5pwpIki+M0itOkSJMY/+gtEhRqJdbR8h5LQrMUQyMaFxi4eKkv0j9u/A720G38ZRotNi5m8xa/8QdZT1Y8tXq0ijvQxpcDoXlMGCWMkSQAEQdS4csUR0IEG7hDHOZw4SxLJ64ebKtrF39+du1wO9O5e8gHGbbAO9uGtQLnu9uB+TqxPE06uOH9+HJDZI3Vn1McSKPNPTc11NPJ8ZVlQOMoiGMW0CJ1dK9hg9FWO2Br7fCtWxvrvEXkfNPT3f3fsekqUmYMO5OUWbAbCfDREhpAVwW85w9a8fsxELp/5ub9gyLWcAFEzhW40tqeUpLFRQZQRyQrWSMETdKojJpcpAmtgNGmmMs0bA2+mEg1gtgZIFjfHbZ4dFR0xuAkE+ytmqVe6gfZdTxMg8g7uuQC26PH9sT7CdvUeWjwfll7f3g0uqHpTX7srYahg9+h+iRtmLI8YJl39Onj9eXFwuvkLXjnIG71sfehNbqHECckiIKkTGmQJd6aN9zI5zAnhgsBwyzEwsGGre27BccUUvBpD8LDZPnu8Nbadyd3p1FQLmSPTwn5XjbPx3uohhfroLaL9+F7By3+QzDKrcIGwkG0XG3hZH9asZnxlSwCSugaV9Xp2z7IYeHV0HTcwmtUhww7zOdQoMhv6wWoF7InN+S9trCqa4Nb5VDLZYPfElcjYDRIsoCy/HkfJujnea5YUtJ4IujHWcJnbltPaes1eqdq7+jdm3V4d4wJ/acvT/8AUaLDiSEFAAA="
             }
         };
-        const expectedDiscordPayload: DiscordWebhookPayload = buildPayload(3659, "GET", "/api/health/dne", JSON.stringify({}), "Path not found ('/api/health/dne')");
+        const expectedDiscordPayload: DiscordWebhookPayload = buildRequestErrorPayload(3659, "GET", "/api/health/dne", JSON.stringify({}), "Path not found ('/api/health/dne')");
 
         axios.mockResolvedValueOnce({call: "successful"});
         return handler(expectedData).then((results) => {
@@ -51,7 +51,7 @@ describe('Lambda Handler', () => {
                 data: "H4sIAAAAAAAAAG1T21LkNhD9FZdfFjYj27J8HYqHyYawyUJlw5DKbbYoWW6PVdiSkTXDLBT/nrYMFcLGL5a6T58+6suj38M48i1cfx3AX/o/rK5XN5dn6/Xq/Mxf+PpegUFzQbMyZkWcJ3GJ5k5vz43eDegJQYyh6PjYkkpbMoLZSwEzZm0N8B5B/4sJcxaJIq7qmDYigQrKghdFBUkNlKWQ5kgy7qpRGDlYqdWPsrNgRn/5t/9h4vpe2wu93Uq1veB9VfO15eKWnBmjzfqbMEKL1Z8ff/35r/XVVRn7X5y+sz0oOxE++rJGmSwrMsbSPMuLJKEsokWUZ0VJkzJOaU5pwpIki+M0itOkSJMY/+gtEhRqJdbR8h5LQrMUQyMaFxi4eKkv0j9u/A720G38ZRotNi5m8xa/8QdZT1Y8tXq0ijvQxpcDoXlMGCWMkSQAEQdS4csUR0IEG7hDHOZw4SxLJ64ebKtrF39+du1wO9O5e8gHGbbAO9uGtQLnu9uB+TqxPE06uOH9+HJDZI3Vn1McSKPNPTc11NPJ8ZVlQOMoiGMW0CJ1dK9hg9FWO2Br7fCtWxvrvEXkfNPT3f3fsekqUmYMO5OUWbAbCfDREhpAVwW85w9a8fsxELp/5ub9gyLWcAFEzhW40tqeUpLFRQZQRyQrWSMETdKojJpcpAmtgNGmmMs0bA2+mEg1gtgZIFjfHbZ4dFR0xuAkE+ytmqVe6gfZdTxMg8g7uuQC26PH9sT7CdvUeWjwfll7f3g0uqHpTX7srYahg9+h+iRtmLI8YJl39Onj9eXFwuvkLXjnIG71sfehNbqHECckiIKkTGmQJd6aN9zI5zAnhgsBwyzEwsGGre27BccUUvBpD8LDZPnu8Nbadyd3p1FQLmSPTwn5XjbPx3uohhfroLaL9+F7By3+QzDKrcIGwkG0XG3hZH9asZnxlSwCSugaV9Xp2z7IYeHV0HTcwmtUhww7zOdQoMhv6wWoF7InN+S9trCqa4Nb5VDLZYPfElcjYDRIsoCy/HkfJujnea5YUtJ4IujHWcJnbltPaes1eqdq7+jdm3V4d4wJ/acvT/8AUaLDiSEFAAA="
             }
         };
-        const expectedDiscordPayload: DiscordWebhookPayload = buildPayload(3659, "GET", "/api/health/dne", JSON.stringify({}), "Path not found ('/api/health/dne')");
+        const expectedDiscordPayload: DiscordWebhookPayload = buildRequestErrorPayload(3659, "GET", "/api/health/dne", JSON.stringify({}), "Path not found ('/api/health/dne')");
 
         axios.mockRejectedValue({call: "failed"});
         return handler(expectedData)
@@ -85,6 +85,46 @@ describe('Lambda Handler', () => {
             expect(discordPayload.embeds[0].fields[0].name).toEqual("Failed");
             expect(discordPayload.embeds[0].fields[0].value).toEqual("Unable to parse log. Check Lambda.");
             expect(discordPayload.embeds[0].fields[1].name).toEqual("Exception");
+        });
+    })
+
+    describe('Build Payload', () => {
+        test('(Request Error) - If Payload has the request obj in it then it should return a request type payload.', () => {
+            const errorLog = {
+                logEvents: [{
+                    message: JSON.stringify({
+                        req: {
+                            id: 101,
+                            method: 'GET',
+                            url: 'http://localhost:8080/api',
+                            params: {
+                                id: '1'
+                            },
+                        },
+                        msg: 'Failed to make call.'
+                    })
+                }]
+            };
+            const payload = buildAndSendDiscordPayload(errorLog);
+            expect(payload.embeds[0].fields.length).toEqual(5);
+            expect(payload.embeds[0].fields[0].name).toEqual('ID');
+            expect(payload.embeds[0].fields[0].value).toEqual('101');
+        });
+
+        test('(Generic Error) - If Payload does not have the request obj in it then it should return a generic type payload.', () => {
+            const errorLog = {
+                logEvents: [{
+                    message: JSON.stringify({
+                        class: 'Controller',
+                        method: 'getTeams',
+                        error: { message: 'Failed to parse', stack: 'Stacky' }
+                    })
+                }]
+            };
+            const payload = buildAndSendDiscordPayload(errorLog);
+            expect(payload.embeds[0].fields.length).toEqual(5);
+            expect(payload.embeds[0].fields[0].name).toEqual('Class');
+            expect(payload.embeds[0].fields[0].value).toEqual('Controller');
         });
     })
 })
